@@ -13,10 +13,8 @@ class Person{
 class UI{
     addPersonToList(person){
         const list =document.getElementById("person-list");
-        const row = document.createElement("tr");
-        let num = 1;
+        const row = document.createElement("tr");    
         row.innerHTML = `
-        <th scope="row">${num}</th>
         <td>${person.firstname}</td>
         <td>${person.lastname}</td>
         <td>${person.gender}</td>
@@ -62,8 +60,50 @@ class UI{
 }
 
 
+class  Store{
+    static getPeople(){
+        let people;
+        if(localStorage.getItem("people") === null){
+            people = [];
+            console.log(people);
+            
+        }else{
+            people = JSON.parse(localStorage.getItem("people"));
+            
+        }
+        return people;
+    }
+    static displayPeople(){
+        const people = Store.getPeople();
+
+        people.forEach((person) => {
+            const ui = new UI();
+            ui.addPersonToList(person);
+            
+        })
+
+    }
+    static addPeople(person){
+        const people = Store.getPeople();
+        people.push(person);
+        localStorage.setItem("people", JSON.stringify(people));
+    }
+    static removePeople(city){
+        const people = Store.getPeople();
+
+        people.forEach((person, index)=>{
+            if(person.city === city){
+                people.splice(index, 1);
+            }
+        });
+        localStorage.setItem("people", JSON.stringify(people));
+    }
+
+}
 
 
+
+document.addEventListener("DOMContentLoaded", Store.displayPeople);
 
 document.getElementById("registration").addEventListener("submit", (e)=>{
     const firstName = document.getElementById("firtsname").value,
@@ -76,12 +116,15 @@ document.getElementById("registration").addEventListener("submit", (e)=>{
 
     const person = new Person(firstName, lastname, gender, birth, address, city);
     const ui = new UI();      
-
+    
 
     if(firstName === "" || lastname === "" || gender === "" || birth === "" || address === "" || city === ""){
         ui.showAlert("Fill in all inputs MOTHERFUCKER", "alert-danger w-100");
     }else{
     ui.addPersonToList(person);
+
+    Store.addPeople(person);
+
     ui.showAlert("Good Job", "alert-success w-100");
     ui.clearFields();
     
@@ -89,10 +132,12 @@ document.getElementById("registration").addEventListener("submit", (e)=>{
     e.preventDefault()
 });
 
+
 document.getElementById("person-list").addEventListener("click", (e)=>{
     const ui = new UI();
     ui.deletePerson(e.target)
     
+    Store.removePeople(e.target.parentElement.previousElementSibling.textContent);
     e.preventDefault();
 
 
